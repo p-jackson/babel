@@ -46,6 +46,7 @@ export default class OptionManager {
   resolvedConfigs: Array<string>;
   options: Object;
   log: ?Logger;
+  filename: ?string;
 
   static memoisedPlugins: Array<{
     container: Function;
@@ -298,7 +299,11 @@ export default class OptionManager {
             (presetLoc || "a preset") + " which does not accept options.");
         }
 
-        if (typeof val === "function") val = val(context, options);
+        if (typeof val === "function") {
+          val = val(context, options, {
+            filename: this.filename
+          });
+        }
 
         if (typeof val !== "object") {
           throw new Error(`Unsupported preset format: ${val}.`);
@@ -335,6 +340,8 @@ export default class OptionManager {
   }
 
   init(opts: Object = {}): Object {
+    this.filename = opts.filename;
+
     for (let config of buildConfigChain(opts, this.log)) {
       this.mergeOptions(config);
     }
